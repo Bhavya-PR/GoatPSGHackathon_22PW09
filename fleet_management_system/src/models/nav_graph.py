@@ -2,38 +2,50 @@ import json
 import networkx as nx
 
 class NavGraph:
-    def __init__(self, file_path):
+    def __init__(self, file_path=None):
         self.graph = nx.Graph()
         self.vertices = []
         self.lanes = []
-        self.load_graph(file_path)
+        
+        if file_path:
+            self.load_graph(file_path)
 
     def load_graph(self, file_path):
         try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
-                self.vertices = data.get('vertices', [])
-                self.lanes = data.get('lanes', [])
-                
+                level_data = data.get('levels', {}).get('level1', {})
+
+                self.vertices = level_data.get('vertices', [])
+                self.lanes = level_data.get('lanes', [])
+
+                if not self.vertices or not self.lanes:
+                    print("❗ No vertices or lanes found. Please check the file.")
+                    return
+
                 self.build_graph()
-                print(f"Successfully loaded graph from {file_path}")
+                print(f"✅ Successfully loaded graph from {file_path}")
         except Exception as e:
-            print(f"Error loading graph: {e}")
+            print(f"❗ Error loading graph: {e}")
 
     def build_graph(self):
-        # Add vertices to the graph
         for i, (x, y, attrs) in enumerate(self.vertices):
+            if not attrs.get('name'):
+                attrs['name'] = f"Unnamed_V{i}"  # Assign a default name if empty
             self.graph.add_node(i, pos=(x, y), **attrs)
-        
-        # Add lanes (edges) to the graph
+            print(f"Added Vertex {i}: {attrs['name']} at ({x}, {y})")
+
         for lane in self.lanes:
-            self.graph.add_edge(lane[0], lane[1])
-
-    def get_graph(self):
-        return self.graph
-
-    def get_vertex_info(self, index):
-        return self.graph.nodes[index] if index in self.graph.nodes else None
+            start, end = lane[0], lane[1]
+            self.graph.add_edge(start, end)
+            print(f"Connected Vertex {start} ↔ Vertex {end}")
 
     def display_graph_summary(self):
-        print(f"Graph has {self.graph.number_of_nodes()} vertices and {self.graph.number_of_edges()} lanes.")
+        print(f"\nGraph Summary:")
+        print(f"🔎 Vertices: {len(self.graph.nodes)}")
+        print(f"🔗 Lanes: {len(self.graph.edges)}")
+
+    def get_vertex_info(self, index):
+        if index in self.graph.nodes:
+            return self.graph.nodes[index]
+        return None
