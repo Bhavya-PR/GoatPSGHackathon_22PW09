@@ -16,9 +16,9 @@ class NavGraph:
                 self.lanes = data.get('lanes', [])
                 
                 self.build_graph()
-                print(f"✅ Successfully loaded graph from {file_path}")
+                print(f"Successfully loaded graph from {file_path}")
         except Exception as e:
-            print(f"❗ Error loading graph: {e}")
+            print(f"Error loading graph: {e}")
 
     def build_graph(self):
         # Add vertices to the graph
